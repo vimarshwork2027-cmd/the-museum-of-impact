@@ -236,31 +236,40 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 1px
 #hold-hint.flip span { left: -62px; transform: translateX(-100%); }
 
 /* time: a single quiet line */
-.t-label { font-size: 9.5px; font-weight: 500; letter-spacing: .32em; text-transform: uppercase; color: var(--paper-faint); }
-#time { position: absolute; left: 50%; bottom: var(--pad); transform: translate(-50%, 12px); width: min(760px, calc(100vw - 2 * var(--pad))); display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px 18px; opacity: 0; transition: opacity .9s var(--ease), transform .9s var(--ease); pointer-events: none !important; }
+.t-label { font-size: 9.5px; font-weight: 500; letter-spacing: .3em; text-transform: uppercase; color: rgba(239, 230, 214, 0.5); }
+#time { position: absolute; left: 50%; bottom: var(--pad); transform: translate(-50%, 12px); width: min(760px, calc(100vw - 2 * var(--pad))); display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px 20px; padding: 12px 22px 10px; opacity: 0; transition: opacity .9s var(--ease), transform .9s var(--ease); pointer-events: none !important; }
 #time.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto !important; }
 #track { position: relative; height: 22px; touch-action: none; }
-#track::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: var(--line); }
+#track::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: rgba(239, 230, 214, 0.2); }
 #track-fill { position: absolute; left: 0; top: 50%; height: 1px; background: var(--paper-dim); width: 0; }
 #playhead { position: absolute; top: 50%; width: 7px; height: 7px; margin: -3.5px 0 0 -3.5px; border-radius: 50%; background: var(--paper); }
 #impact-mark { position: absolute; top: 4px; bottom: 4px; width: 1px; background: var(--gold); opacity: .8; }
-#timecode { font-family: var(--serif); font-size: 18px; font-variant-numeric: tabular-nums; color: var(--paper-dim); min-width: 74px; text-align: right; }
+#timecode { font-family: var(--serif); font-size: 18px; font-variant-numeric: tabular-nums; color: var(--paper); min-width: 74px; text-align: right; }
 .t-ctrl { grid-column: 1 / -1; display: flex; align-items: center; justify-content: center; gap: 6px 18px; flex-wrap: wrap; }
-.t-btn { font-size: 10px; font-weight: 500; letter-spacing: .24em; text-transform: uppercase; color: var(--paper-faint); padding: 6px 2px; border-bottom: 1px solid transparent; transition: color .3s, border-color .3s; }
+.t-btn { font-size: 10px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: rgba(239, 230, 214, 0.58); padding: 6px 2px; border-bottom: 1px solid transparent; transition: color .3s, border-color .3s; }
 .t-btn:hover, .t-btn.on { color: var(--paper); }
 .t-btn.on { border-bottom-color: var(--paper-faint); }
 .t-btn.freeze { color: var(--paper); border-bottom-color: var(--gold); margin-left: 10px; }
 #speeds { display: flex; gap: 16px; }
-#speeds button { font-family: var(--serif); font-size: 17px; color: var(--paper-faint); padding: 2px; border-bottom: 1px solid transparent; transition: color .3s; }
+#speeds button { font-family: var(--serif); font-size: 17px; color: rgba(239, 230, 214, 0.55); padding: 2px; border-bottom: 1px solid transparent; transition: color .3s; }
 #speeds button:hover { color: var(--paper); }
 #speeds button.on { color: var(--paper); border-bottom-color: var(--paper-faint); }
 
-#frozen-bar { position: absolute; left: 50%; bottom: var(--pad); transform: translate(-50%, 12px); width: min(560px, calc(100vw - 2 * var(--pad))); display: grid; gap: 10px; justify-items: center; opacity: 0; transition: opacity .9s var(--ease), transform .9s var(--ease); pointer-events: none !important; }
+#frozen-bar { position: absolute; left: 50%; bottom: var(--pad); transform: translate(-50%, 12px); width: min(580px, calc(100vw - 2 * var(--pad))); display: grid; gap: 11px; justify-items: center; padding: 13px 22px; opacity: 0; transition: opacity .9s var(--ease), transform .9s var(--ease); pointer-events: none !important; }
+
+/* the stage behind them can be lit marble: they carry their own darkness */
+#time, #frozen-bar {
+  background: linear-gradient(180deg, rgba(26, 20, 14, 0.88), rgba(10, 8, 5, 0.92));
+  border: 1px solid rgba(239, 230, 214, 0.12);
+  border-top-color: rgba(199, 164, 106, 0.24);
+  box-shadow: 0 16px 44px -20px rgba(0, 0, 0, 0.95);
+  backdrop-filter: blur(12px) saturate(1.1);
+}
 #frozen-bar.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto !important; }
 .find { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: center; width: 100%; }
 .find[hidden] { display: none; }
 #find-track { position: relative; height: 22px; touch-action: none; }
-#find-track i { position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: linear-gradient(90deg, transparent, var(--line) 12%, var(--line) 88%, transparent); }
+#find-track i { position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: linear-gradient(90deg, transparent, rgba(239,230,214,.22) 12%, rgba(239,230,214,.22) 88%, transparent); }
 #find-head { position: absolute; top: 50%; width: 1px; height: 16px; margin-top: -8px; background: var(--paper); }
 .fz-actions { display: flex; align-items: center; gap: 22px; }
 
@@ -290,7 +299,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 1px
 #offer, #acq, #acquired { position: absolute; left: var(--pad); bottom: var(--pad); width: min(330px, calc(100vw - 2 * var(--pad))); opacity: 0; transform: translateY(10px); transition: opacity 1s var(--ease), transform 1s var(--ease); pointer-events: none !important; }
 /* it can land over a lit marble plinth, so it carries its own darkness */
 #offer, #acquired {
-  bottom: calc(var(--pad) + 112px); /* clear of the frozen-time bar */
+  bottom: calc(var(--pad) + 132px); /* clear of the frozen-time bar */
   padding: 16px 18px; background: linear-gradient(158deg, rgba(31,24,17,.92), rgba(11,8,5,.94));
   border: 1px solid rgba(199,164,106,.22); border-left: 2px solid var(--gold);
   box-shadow: 0 20px 48px -22px rgba(0,0,0,.9);
