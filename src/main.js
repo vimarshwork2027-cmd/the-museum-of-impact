@@ -89,6 +89,8 @@ async function boot() {
 
   // Each work is performed once at load: the museum's own record of the event.
   // The gallery shows its instant; entering rewinds it to before it happened.
+  dropSeededWorks();
+
   async function conserve() {
     const enterBtn = $('#btn-enter');
     for (let i = 0; i < ARTWORKS.length; i++) {
@@ -123,52 +125,27 @@ async function boot() {
       list.children[i].querySelector('em').textContent = 'Ready';
       await yieldTask();
     }
-    seedWing();
     refreshAcquisitions();
     await warm(museum.scene, galleryCam);
   }
 
   /**
-   * A museum with an empty visitors' wing reads as broken rather than new, so the
-   * first visit is given four works to walk past. They are real acquisitions —
-   * actual frozen instants of the canonical performances — and can be deleted
-   * like any other, after which they stay gone.
+   * The wing was briefly seeded with four works of the museum's own. They are no
+   * longer wanted, so any browser that already took them has them removed once.
+   * Matched on their exact signature, never on count, so anything a visitor
+   * actually preserved alongside them survives.
    */
-  function seedWing() {
-    if (state.works.length || localStorage.getItem('museum-of-impact.seeded')) return;
-    const SEEDS = [
-      { src: 'shatter', at: 0.10, title: 'Forty Milliseconds', creator: 'R. Alvarez', note: 'I stopped it where the light got in.', ago: 31 },
-      { src: 'splash', at: 0.16, title: 'The Crown', creator: 'Mei Lin', note: 'Water keeps no shape of its own. This is the one it borrowed.', ago: 17 },
-      { src: 'collapse', at: 0.42, title: 'Sixteen Stones, Disagreeing', creator: 'J. Okonkwo', note: '', ago: 9 },
-      { src: 'break', at: 0.13, title: 'Winter, Interrupted', creator: 'a visitor', note: 'It was already melting. I only chose the moment.', ago: 2 },
+  function dropSeededWorks() {
+    if (!localStorage.getItem('museum-of-impact.seeded')) return;
+    const seeded = [
+      ['Forty Milliseconds', 'R. Alvarez', 'shatter'],
+      ['The Crown', 'Mei Lin', 'splash'],
+      ['Sixteen Stones, Disagreeing', 'J. Okonkwo', 'collapse'],
+      ['Winter, Interrupted', 'a visitor', 'break'],
     ];
-    const made = [];
-    for (const seed of SEEDS) {
-      const sim = sims[seed.src];
-      if (!sim?.canonical?.count) continue;
-      const t = Math.min((sim.canonical.impactTime ?? 0.2) + seed.at, sim.canonical.end);
-      sim.canonical.sample(t, sim.meshes);
-      sim.visuals(t);
-      made.push({
-        id: newId(),
-        number: nextNumber(made),
-        title: seed.title,
-        creator: seed.creator,
-        note: seed.note,
-        date: Date.now() - seed.ago * 86400000,
-        sourceArtwork: seed.src,
-        state: sim.captureState(),
-        extra: { t: +t.toFixed(4), bursts: sim.canonicalExtra.bursts, splash: sim.canonicalExtra.splash },
-        cam: {
-          p: sim.def.camera.pos.toArray().map((x) => +x.toFixed(3)),
-          t: sim.def.camera.target.toArray().map((x) => +x.toFixed(3)),
-        },
-      });
-      sim.reset();
-    }
-    if (!made.length) return;
-    state.works = saveCollection(made);
-    try { localStorage.setItem('museum-of-impact.seeded', '1'); } catch { /* private window */ }
+    const keep = state.works.filter((w) => !seeded.some(([t, c, src]) => w.title === t && w.creator === c && w.sourceArtwork === src));
+    if (keep.length !== state.works.length) state.works = saveCollection(keep);
+    try { localStorage.removeItem('museum-of-impact.seeded'); } catch { /* private window */ }
   }
 
   function makeDisplay(work) {
