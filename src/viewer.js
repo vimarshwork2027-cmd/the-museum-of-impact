@@ -27,6 +27,7 @@ const LEGEND = {
     { k: ['click'], t: 'take hold of it', lead: true },
     { k: ['move'], t: 'then raise it' },
     { k: ['click'], t: 'and let it go' },
+    { k: ['pinch'], t: 'adjust the frame' },
     { k: ['right drag'], t: 'reframe' },
   ],
   holding: [
@@ -42,12 +43,14 @@ const LEGEND = {
     { k: ['←', '→'], t: 'rewind · forward' },
     { k: ['space'], t: 'pause' },
     { k: ['drag'], t: 'look around' },
+    { k: ['pinch'], t: 'adjust the frame' },
     { k: ['T'], t: 'start over' },
   ],
   frozen: [
     { k: ['click'], t: 'take a fragment · click to place', lead: true },
     { k: ['scroll'], t: 'turn it' },
     { k: ['drag'], t: 'orbit' },
+    { k: ['pinch'], t: 'adjust the frame' },
     { k: ['W', 'A', 'S', 'D'], t: 'walk' },
     { k: ['dbl click'], t: 'focus' },
     { k: ['R'], t: 'reset the view' },

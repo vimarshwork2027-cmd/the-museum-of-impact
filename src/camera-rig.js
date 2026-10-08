@@ -49,6 +49,9 @@ export class CameraRig {
     });
     window.addEventListener('pointerup', (e) => { if (this.drag?.id === e.pointerId) this.drag = null; });
     dom.addEventListener('contextmenu', (e) => { if (this.enabled) e.preventDefault(); });
+    // A trackpad pinch arrives here as a wheel event (with ctrlKey set); so does a
+    // mouse wheel. Either way it is the one axis the cursor cannot reach: how far
+    // the eye stands from the work. preventDefault stops the browser zooming too.
     dom.addEventListener('wheel', (e) => {
       if (!this.enabled || this.blockWheel) return;
       e.preventDefault();
