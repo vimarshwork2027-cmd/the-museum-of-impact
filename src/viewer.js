@@ -127,7 +127,6 @@ export class Viewer {
     this.ui.again.addEventListener('click', () => this.beginAgain());
     this.ui.restart.addEventListener('click', () => this.restart());
     $('#m-exit').addEventListener('click', () => this.exit());
-    $('#btn-offer').addEventListener('click', () => this.openCard());
     this.ui.preserve.addEventListener('click', () => this.openCard());
     $('#acq-cancel').addEventListener('click', () => this.closeCard());
     this.ui.acq.addEventListener('submit', (e) => { e.preventDefault(); this.preserve(); });
@@ -247,10 +246,9 @@ export class Viewer {
         this.aimed = null;
         this.holdFloorY = -Infinity;
         this.cursor.set('grabbing');
-        this.cursor.say('Move to raise · click to let go', 2800);
         this.showHolding(true);
         this.setKeys('holding');
-        this.holdHint('Move the cursor to raise it · click to let go');
+        this.holdHint('Move to raise · click to let go');
         this.updateGuide(); // establishes the surface before the hand can move it anywhere
       } else if (this.state === 'frozen' && !this.ceremony && !this.card) {
         const hit = this.pick(this.sim.meshes);
@@ -504,7 +502,7 @@ export class Viewer {
       this.guideRing.material.color.set(onTarget ? '#ffe2a8' : '#c7a46a');
       this.guideLine.material.color.set(onTarget ? '#ffe2a8' : '#c7a46a');
       this.ui.holding.classList.toggle('aimed', onTarget);
-      this.holdHint(onTarget ? 'Let go — it will strike' : 'Move the cursor to raise it · click to let go');
+      this.holdHint(onTarget ? 'Let go — it will strike' : 'Move to raise · click to let go');
     }
     this.guide.visible = true;
     const pos = this.guideLine.geometry.attributes.position;
@@ -656,6 +654,7 @@ export class Viewer {
     this.ended = false;
     this.restFor = 0;
     this.impactSeenAt = null;
+    this.liveStart = performance.now();
     this.ui.hint.classList.remove('show');
     this.showHolding(false);
     this.guide.visible = false;
@@ -829,6 +828,7 @@ export class Viewer {
     this.card = true;
     this.ui.offer.classList.remove('show');
     this.ui.preserve.classList.remove('urged');
+    this.ui.frozen.classList.remove('show'); // filling in the record, not scrubbing time
     $('#acq-no').textContent = this.nextNumber();
     $('#acq-src').textContent = this.sim.def.title;
     $('#acq-year').textContent = new Date().getFullYear();
@@ -841,7 +841,8 @@ export class Viewer {
   closeCard() {
     this.card = false;
     this.ui.acq.classList.remove('show');
-    this.ui.offer.classList.add('show');
+    if (this.state === 'frozen' && !this.ceremony) this.ui.frozen.classList.add('show');
+    this.ui.preserve.classList.add('urged');
   }
 
   async preserve() {
@@ -1079,6 +1080,12 @@ export class Viewer {
         this.auto = false;
         this.speed = 0.25;
         this.handOver();
+      } else if (this.impactSeenAt == null && performance.now() - this.liveStart > 2800) {
+        // Nothing broke. The shot still has to end: while it runs the whole
+        // interface is hidden, so a gentle drop used to leave no way out at all.
+        this.auto = false;
+        this.speed = 1;
+        this.handOver();
       }
     }
     const s = this.paused ? 0 : this.speed;
@@ -1099,14 +1106,19 @@ export class Viewer {
     // it survived: no impact and everything is still — let the visitor try again
     if (!sim.impacted && this.p >= sim.time - 1e-6) {
       const g = sim.grabbables.find((x) => x.body.type !== 4);
-      const v = g ? g.body.velocity.length() : 0;
-      this.restFor = v < 0.05 ? this.restFor + dt : 0;
-      if (this.restFor > 0.6 || sim.time > 6) {
+      const atRest = !g || g.body.sleepState === 2 || g.body.velocity.length() < 0.05;
+      this.restFor = atRest ? this.restFor + dt : 0;
+      if (this.restFor > 0.5 || sim.time > 5) {
         sim.mode = 'hold';
         sim.recording = null;
         sim.time = 0;
         sim.particles.reset();
-        this.beginHold(sim.def.id === 'break' ? 'Strike harder' : sim.def.id === 'collapse' ? 'Aim for the stones' : 'It survived — lift it higher');
+        // surviving is a real outcome, not a failure: name it and hand it straight back
+        this.beginHold(sim.def.id === 'break' ? 'It held. Swing harder.'
+          : sim.def.id === 'collapse' ? 'It stands. Aim for the stones.'
+          : sim.def.id === 'splash' ? 'It missed the water. Try again.'
+          : 'It held. Raise it higher.');
+        this.caption('It held', 'raise it higher and let go again', 3600);
         this.rig.takeBack();
         return;
       }

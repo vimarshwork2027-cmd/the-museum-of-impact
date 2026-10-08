@@ -123,8 +123,52 @@ async function boot() {
       list.children[i].querySelector('em').textContent = 'Ready';
       await yieldTask();
     }
+    seedWing();
     refreshAcquisitions();
     await warm(museum.scene, galleryCam);
+  }
+
+  /**
+   * A museum with an empty visitors' wing reads as broken rather than new, so the
+   * first visit is given four works to walk past. They are real acquisitions —
+   * actual frozen instants of the canonical performances — and can be deleted
+   * like any other, after which they stay gone.
+   */
+  function seedWing() {
+    if (state.works.length || localStorage.getItem('museum-of-impact.seeded')) return;
+    const SEEDS = [
+      { src: 'shatter', at: 0.10, title: 'Forty Milliseconds', creator: 'R. Alvarez', note: 'I stopped it where the light got in.', ago: 31 },
+      { src: 'splash', at: 0.16, title: 'The Crown', creator: 'Mei Lin', note: 'Water keeps no shape of its own. This is the one it borrowed.', ago: 17 },
+      { src: 'collapse', at: 0.42, title: 'Sixteen Stones, Disagreeing', creator: 'J. Okonkwo', note: '', ago: 9 },
+      { src: 'break', at: 0.13, title: 'Winter, Interrupted', creator: 'a visitor', note: 'It was already melting. I only chose the moment.', ago: 2 },
+    ];
+    const made = [];
+    for (const seed of SEEDS) {
+      const sim = sims[seed.src];
+      if (!sim?.canonical?.count) continue;
+      const t = Math.min((sim.canonical.impactTime ?? 0.2) + seed.at, sim.canonical.end);
+      sim.canonical.sample(t, sim.meshes);
+      sim.visuals(t);
+      made.push({
+        id: newId(),
+        number: nextNumber(made),
+        title: seed.title,
+        creator: seed.creator,
+        note: seed.note,
+        date: Date.now() - seed.ago * 86400000,
+        sourceArtwork: seed.src,
+        state: sim.captureState(),
+        extra: { t: +t.toFixed(4), bursts: sim.canonicalExtra.bursts, splash: sim.canonicalExtra.splash },
+        cam: {
+          p: sim.def.camera.pos.toArray().map((x) => +x.toFixed(3)),
+          t: sim.def.camera.target.toArray().map((x) => +x.toFixed(3)),
+        },
+      });
+      sim.reset();
+    }
+    if (!made.length) return;
+    state.works = saveCollection(made);
+    try { localStorage.setItem('museum-of-impact.seeded', '1'); } catch { /* private window */ }
   }
 
   function makeDisplay(work) {
@@ -296,7 +340,7 @@ async function boot() {
     show('#hud', false);
     setFocus(null);
     cursor.set('default');
-    const close = a.center.clone().addScaledVector(a.normal, 1.1);
+    const close = a.center.clone().addScaledVector(a.normal, Math.max(1.6, (a.viewDist ?? 3.4) * 0.62));
     close.y = 1.35;
     walker.goTo(close, a.viewYaw, 0.05, 1.7);
     animate(galleryCam, 'fov', 36, 1.7);
@@ -373,7 +417,6 @@ async function boot() {
       : 'Preserved by visitors';
     const html = `<li class="sect"><span class="eyebrow">Permanent collection</span></li>${perm.map(row).join('')}<li class="sect"><span class="eyebrow">New acquisitions</span><span class="d">${escapeHtml(note)}</span></li>${acq.length ? acq.map(row).join('') : '<li class="sect"><span class="d">None yet. The first could be yours.</span></li>'}`;
     $('#ix-list').innerHTML = html;
-    $('#ix-ghost').innerHTML = html; // ink showing through from the other side of the page
     show('#index', true);
   }
   $('#btn-index').addEventListener('click', openIndex);

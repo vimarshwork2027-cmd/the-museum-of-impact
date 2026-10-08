@@ -444,7 +444,7 @@ export function buildMuseum(fonts) {
     colliders.push({ x: g.x, z: g.z, r: radius + 0.15 }, { x: pl.position.x, z: pl.position.z, r: 0.25 });
     spot(new THREE.Vector3(g.x + normal.x * 1.6 + 0.4, 6.9, g.z + normal.z * 1.6), new THREE.Vector3(g.x, 0.9, g.z), { intensity: g.vitrine ? 30 : 70, angle: g.vitrine ? 0.2 : 0.26, penumbra: 0.8 });
     const a = register({
-      kind: 'moment', id: def.id, def, center: new THREE.Vector3(g.x, 1.0, g.z), normal, viewDist: g.vitrine ? 2.6 : 3.1, hit: [proxy],
+      kind: 'moment', id: def.id, def, center: new THREE.Vector3(g.x, 1.0, g.z), normal, viewDist: g.vitrine ? 3.3 : 3.1, hit: [proxy], // the case is 0.86 across and 2 m tall: stand off it
       hotspot: new THREE.Vector3(g.x, g.vitrine ? 2.2 : 1.6, g.z), display,
     });
     proxy.userData.artwork = a;
