@@ -65,7 +65,15 @@ async function boot() {
   } catch { /* fall back to system serif */ }
 
   const list = $('#load-list');
-  list.innerHTML = ARTWORKS.map((d) => `<li><span>${d.number} · ${d.title}</span><em>Waiting</em></li>`).join('');
+  list.innerHTML = ARTWORKS.map((d) => `<li><span class="n">${d.number}</span><span class="t">${escapeHtml(d.title)}</span><em>Waiting</em><span class="m">${escapeHtml(d.material)}</span></li>`).join('');
+  const bar = $('#load-bar');
+  const count = $('#load-count');
+  count.textContent = `0 / ${ARTWORKS.length}`;
+  /** The line is the museum's own progress through the collection, not a guess. */
+  const progress = (done, part = 0) => {
+    bar.style.width = `${((done + part) / ARTWORKS.length) * 100}%`;
+    count.textContent = `${done} / ${ARTWORKS.length}`;
+  };
 
   const museum = buildMuseum();
   museum.scene.environment = envTex;
@@ -96,7 +104,10 @@ async function boot() {
     for (let i = 0; i < ARTWORKS.length; i++) {
       const def = ARTWORKS[i];
       enterBtn.textContent = `Conserving the collection · ${i + 1} / ${ARTWORKS.length}`;
-      list.children[i].querySelector('em').textContent = 'Conserving';
+      const row = list.children[i];
+      row.classList.add('live');
+      row.querySelector('em').textContent = 'Conserving';
+      progress(i, 0.12);
       const sim = new ImpactSimulation(def);
       sim.scene.environment = envTex;
       sim.scene.environmentIntensity = 0.35;
@@ -108,8 +119,14 @@ async function boot() {
       const enough = () => sim.recording.impactTime != null && sim.time > sim.recording.impactTime + def.heroOffset + 0.25;
       while (sim.time < def.canonicalDuration && !enough()) {
         sim.advance(1 / 60);
-        if (performance.now() - last > 28) { await yieldTask(); last = performance.now(); }
+        if (performance.now() - last > 28) {
+          // the line creeps while the event is actually being performed
+          progress(i, 0.12 + 0.6 * Math.min(1, sim.time / def.canonicalDuration));
+          await yieldTask();
+          last = performance.now();
+        }
       }
+      progress(i, 0.78);
       sim.canonical = sim.recording;
       sim.heroTime = (sim.canonical.impactTime ?? 0.3) + def.heroOffset;
       sim.canonicalExtra = { bursts: sim.particles.serialize(), splash: sim.ctx.splash?.serialize() ?? null };
@@ -121,10 +138,13 @@ async function boot() {
       display.update(sim.heroTime, sim.canonical);
       museum.addInstallation(def, display);
       rebuildHotspots();
-      list.children[i].classList.add('done');
-      list.children[i].querySelector('em').textContent = 'Ready';
+      row.classList.remove('live');
+      row.classList.add('done');
+      row.querySelector('em').textContent = 'Ready';
+      progress(i + 1);
       await yieldTask();
     }
+    $('#loader').classList.add('ready');
     refreshAcquisitions();
     await warm(museum.scene, galleryCam);
   }

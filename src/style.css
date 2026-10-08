@@ -55,13 +55,74 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 1px
 .wordmark { font-family: var(--sans); font-weight: 300; font-size: 15px; color: var(--paper); letter-spacing: 0.01em; }
 
 /* ---------- loader */
-#loader { background: var(--ink); display: grid; place-content: center; justify-items: center; gap: 28px; text-align: center; padding: 24px; }
-#load-list { list-style: none; display: grid; gap: 8px; min-width: min(420px, 86vw); }
-#load-list li { display: flex; justify-content: space-between; gap: 30px; font-family: var(--serif); font-size: 20px; color: var(--paper-faint); transition: color .6s; }
-#load-list li.done { color: var(--paper); }
-#load-list li em { font-style: normal; font-family: var(--sans); font-size: 10px; letter-spacing: .2em; align-self: center; }
-.load-line { width: min(420px, 86vw); height: 1px; background: var(--line); }
-.load-line i { display: block; height: 100%; width: 0; background: var(--paper); transition: width .3s; }
+/* The conservators at work: a register of the collection, each line coming up
+   out of the dark as its event is performed, and one rule across the bottom
+   that is the museum's real progress rather than a guess. */
+#loader { background: var(--ink); display: grid; place-content: center; justify-items: center; gap: 30px; padding: 24px; }
+#loader .eyebrow { text-align: center; }
+#loader .monogram b { animation: vigil 4.6s var(--ease) infinite; }
+@keyframes vigil {
+  0%, 100% { border-color: var(--line); box-shadow: 0 0 0 0 rgba(199,164,106,0); }
+  50% { border-color: rgba(199,164,106,.5); box-shadow: 0 0 22px -6px rgba(199,164,106,.4); }
+}
+
+#load-list { list-style: none; display: grid; width: min(460px, 88vw); }
+#load-list li {
+  position: relative; display: grid; grid-template-columns: 42px 1fr auto;
+  align-items: baseline; gap: 2px 16px; padding: 10px 0;
+  color: rgba(239, 230, 214, 0.26); transition: color .7s var(--ease);
+}
+#load-list li.live, #load-list li.done { color: var(--paper); }
+/* a hairline drawn under each work as it is conserved */
+#load-list li::after {
+  content: ''; position: absolute; left: 0; bottom: 0; height: 1px; width: 0;
+  background: linear-gradient(90deg, var(--gold), rgba(199, 164, 106, 0));
+  transition: width 1.2s var(--ease), background .8s;
+}
+#load-list li.live::after { width: 100%; }
+#load-list li.done::after { width: 100%; background: rgba(239, 230, 214, 0.14); }
+
+#load-list .n { font-family: var(--serif); font-size: 15px; color: rgba(199, 164, 106, 0.42); transition: color .7s; }
+#load-list li.live .n, #load-list li.done .n { color: var(--gold); }
+#load-list .t { font-family: var(--serif); font-size: 22px; line-height: 1; }
+#load-list .m { grid-column: 2 / -1; font-size: 9px; font-weight: 500; letter-spacing: .18em; text-transform: uppercase; color: rgba(239, 230, 214, 0.26); margin-top: 5px; }
+#load-list li em {
+  font-style: normal; font-family: var(--sans); font-size: 8.5px; font-weight: 500;
+  letter-spacing: .22em; text-transform: uppercase; color: rgba(239, 230, 214, 0.3); align-self: center;
+}
+#load-list li.live em { color: var(--gold); }
+#load-list li.done em { color: rgba(239, 230, 214, 0.42); }
+/* the work being performed right now reads as lit from within */
+#load-list li.live .t {
+  background: linear-gradient(90deg, rgba(239,230,214,.72) 18%, #fff7e6 50%, rgba(239,230,214,.72) 82%);
+  background-size: 260% 100%;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: conserving 2.4s linear infinite;
+}
+@keyframes conserving { from { background-position: 130% 0; } to { background-position: -130% 0; } }
+
+.load-foot { display: grid; gap: 10px; justify-items: center; width: min(460px, 88vw); }
+.load-line { position: relative; width: 100%; height: 1px; background: rgba(239, 230, 214, 0.12); overflow: hidden; }
+.load-line i {
+  display: block; height: 100%; width: 0;
+  background: linear-gradient(90deg, rgba(199, 164, 106, 0.45), var(--gold));
+  box-shadow: 0 0 10px rgba(199, 164, 106, 0.5);
+  transition: width .9s var(--ease);
+}
+/* a light passing along the rule while there is still work to do */
+.load-line::after {
+  content: ''; position: absolute; inset: 0 auto 0 0; width: 34%;
+  background: linear-gradient(90deg, transparent, rgba(255, 238, 198, 0.5), transparent);
+  animation: passing 2.1s linear infinite;
+}
+@keyframes passing { from { transform: translateX(-120%); } to { transform: translateX(420%); } }
+#loader.ready .load-line::after { opacity: 0; }
+#load-count { font-family: var(--serif); font-size: 15px; font-variant-numeric: tabular-nums; color: rgba(239, 230, 214, 0.4); }
+
+@media (prefers-reduced-motion: reduce) {
+  #loader .monogram b, #load-list li.live .t, .load-line::after { animation: none; }
+  #load-list li.live .t { color: var(--paper); background: none; -webkit-text-fill-color: currentColor; }
+}
 
 /* ---------- intro */
 #intro { background: linear-gradient(180deg, rgba(14,11,8,.55) 0%, rgba(14,11,8,.05) 40%, rgba(14,11,8,.35) 70%, rgba(14,11,8,.85) 100%); }
