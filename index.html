@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>The Museum of Impact</title>
+    <meta name="description" content="Moments that existed for milliseconds, preserved forever. An interactive WebGL museum of physical impact." />
+    <meta name="theme-color" content="#0e0b08" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%230e0b08'/%3E%3Ccircle cx='32' cy='32' r='22' fill='none' stroke='%23c7a46a' stroke-width='2'/%3E%3Ctext x='32' y='40' font-family='Georgia,serif' font-size='22' text-anchor='middle' fill='%23efe6d6'%3EMI%3C/text%3E%3C/svg%3E" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <canvas id="gl"></canvas>
+
+    <!-- conserving the works -->
+    <section id="loader" class="layer show">
+      <div class="monogram"><span>20</span><b>MI</b><span>26</span></div>
+      <p class="eyebrow">The conservators are preparing the collection</p>
+      <ol id="load-list"></ol>
+      <div class="load-line"><i id="load-bar"></i></div>
+    </section>
+
+    <!-- the threshold -->
+    <section id="intro" class="layer">
+      <header class="topbar">
+        <nav class="tb-left"><span>Visit</span><span>Collection</span><span>Conservation</span></nav>
+        <div class="monogram small"><span>20</span><b>MI</b><span>26</span></div>
+        <div class="tb-right"><span class="est">Est. 1911 · Free admission</span></div>
+      </header>
+      <p class="intro-lede">
+        A collection of physical events that lasted a few thousandths of a second. Each work is an impact, held at the instant
+        it happened. Enter one. Hold it still. Leave something behind.
+      </p>
+      <div class="intro-side">
+        <span class="eyebrow">Now showing</span>
+        <span>Four permanent works</span>
+        <span id="intro-acq">and the visitors’ wing</span>
+      </div>
+      <h1 class="display"><span>The Museum</span> <span><em>of</em> Impact</span></h1>
+      <div class="intro-foot">
+        <p class="tagline">Moments that existed for milliseconds, preserved forever.</p>
+        <div class="enter-slot">
+          <button id="btn-enter" class="btn solid">Enter as an observer</button>
+          <p class="enter-key"><span>press</span><kbd>↵</kbd><span>to enter</span></p>
+        </div>
+        <p class="tiny">Sound recommended · Drag to look · W A S D or scroll to walk</p>
+      </div>
+    </section>
+
+    <!-- gallery -->
+    <section id="hud" class="layer">
+      <header class="topbar">
+        <div class="tb-left"><span class="wordmark">The Museum of Impact</span></div>
+        <div class="monogram small"><span>20</span><b>MI</b><span>26</span></div>
+        <div class="tb-right">
+          <button id="btn-sound" class="link" aria-pressed="false">Sound on</button>
+          <button id="btn-index" class="btn">Collection <span id="count"></span></button>
+        </div>
+      </header>
+      <div id="hotspots"></div>
+      <aside id="placard">
+        <i class="pl-frame" aria-hidden="true"></i>
+        <header class="pl-head">
+          <span class="pl-no" id="pl-count">001</span>
+          <span class="pl-coll" id="pl-eyebrow">Permanent collection</span>
+        </header>
+        <div class="pl-rule" aria-hidden="true"><i></i><b></b><i></i></div>
+        <h2 id="pl-title"></h2>
+        <p class="pl-medium" id="pl-medium"></p>
+        <p class="pl-text" id="pl-text"></p>
+        <div class="pl-rule" aria-hidden="true"><i></i><b></b><i></i></div>
+        <button id="btn-moment" class="pl-go"><span>Enter the moment</span><kbd>↵</kbd><i>→</i></button>
+      </aside>
+      <footer class="room">
+        <span class="eyebrow">West corridor · Gallery of Impact</span>
+        <span id="role">You are an observer.</span>
+      </footer>
+      <div id="g-keys" class="keys">
+        <span class="k-row"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><em>walk</em></span>
+        <span class="k-row"><kbd class="wide">drag</kbd><em>look around</em></span>
+        <span class="k-row"><kbd class="wide">click</kbd><em>approach a work</em></span>
+        <span class="k-row"><kbd class="wide">shift</kbd><em>walk faster</em></span>
+      </div>
+      <p id="hint">Walk down the corridor and click a work to approach it</p>
+    </section>
+
+    <!-- inside a moment: as little as possible -->
+    <section id="mui" class="layer">
+      <div class="m-head">
+        <span class="eyebrow" id="m-no"></span>
+        <h2 id="m-title"></h2>
+        <p id="m-meta"></p>
+      </div>
+      <button id="m-exit" class="link">← Return to gallery</button>
+      <div class="m-tools">
+        <button id="btn-restart" class="btn tool"><span>↺</span> Start over</button>
+      </div>
+      <div id="m-work"></div>
+      <p id="ctx-state"></p>
+      <div id="caption"><p class="c-main"></p><p class="c-sub"></p></div>
+      <div id="hold-hint"><i></i><span></span></div>
+      <div id="holding"><b id="holding-what">Holding</b><span id="holding-h">0.00 m</span><i id="holding-gauge"><u></u></i></div>
+      <div id="m-keys" class="keys"></div>
+
+      <div id="time">
+        <span class="t-label">Time</span>
+        <div id="track"><div id="track-fill"></div><div id="impact-mark"></div><div id="playhead"></div></div>
+        <span id="timecode">+0.000 s</span>
+        <div class="t-ctrl">
+          <button id="btn-rewind" class="t-btn">◂ Rewind</button>
+          <div id="speeds"></div>
+          <button id="btn-freeze" class="t-btn freeze">Freeze moment</button>
+        </div>
+      </div>
+
+      <div id="frozen-bar">
+        <div class="find">
+          <span class="t-label">Find a moment</span>
+          <div id="find-track"><i></i><div id="find-head"></div></div>
+        </div>
+        <div class="fz-actions">
+          <button id="btn-release" class="t-btn">Release time</button>
+          <button id="btn-again" class="t-btn">Begin again</button>
+          <button id="btn-preserve" class="t-btn preserve">Preserve this moment →</button>
+        </div>
+      </div>
+
+      <aside id="offer">
+        <span class="eyebrow">A moment worth preserving</span>
+        <p>The museum has recognised an unexpected composition.</p>
+        <button id="btn-offer" class="link strong">Preserve moment →</button>
+      </aside>
+
+      <form id="acq" autocomplete="off">
+        <i class="pl-frame" aria-hidden="true"></i>
+        <header class="pl-head">
+          <span class="pl-no" id="acq-no">006</span>
+          <span class="pl-coll">New acquisition</span>
+        </header>
+        <div class="pl-rule" aria-hidden="true"><i></i><b></b><i></i></div>
+        <label class="acq-field acq-f-title">
+          <span class="acq-label">Title of the work</span>
+          <input id="acq-title" maxlength="60" />
+        </label>
+        <p class="acq-src">After <span id="acq-src"></span> · <span id="acq-year">2026</span></p>
+        <label class="acq-field">
+          <span class="acq-label">Created by</span>
+          <input id="acq-by" maxlength="40" placeholder="a visitor" />
+        </label>
+        <label class="acq-field">
+          <span class="acq-label">A note for whoever finds it next</span>
+          <input id="acq-note" maxlength="200" placeholder="optional" />
+        </label>
+        <div class="acq-actions">
+          <button type="submit" class="acq-go">Preserve this moment <i>→</i></button>
+          <button type="button" id="acq-cancel" class="link">Not yet</button>
+        </div>
+      </form>
+
+      <aside id="acquired">
+        <span class="eyebrow">New acquisition</span>
+        <p class="eyebrow" id="acquired-no"></p>
+        <h3 id="acquired-title"></h3>
+        <p id="acquired-by"></p>
+        <button id="btn-return" class="link strong">Return to gallery →</button>
+      </aside>
+    </section>
+
+    <!-- the catalogue -->
+    <section id="index" class="layer">
+      <header class="ix-head">
+        <span class="eyebrow">Catalogue of the collection</span>
+        <button id="ix-close" class="btn">Close</button>
+      </header>
+      <h2 class="display ix-title">The Collection</h2>
+      <ol id="ix-ghost" aria-hidden="true"></ol>
+      <ol id="ix-list"></ol>
+    </section>
+
+    <div id="toast"></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
